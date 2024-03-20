@@ -47,12 +47,14 @@ public:
     BitHolder &getHolderAt(const int x, const int y) override { return currentState._grid[y][x]; }
 	void updateAI() override;
     bool gameHasAI() override { return true; }
+    void UCIMove(const std::string& move);
 
     GameState currentState;
 
     //These functions are here because C++ moment
     bool canBitMoveFrom(Bit&bit, BitHolder &src) override{ return canBitMoveFrom(&currentState, bit, src);};
     bool canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) override{ return canBitMoveFromTo(&currentState, bit, src, dst);};
+    void FENtoBoard(const std::string& fenString);
 
 private:
     Bit *PieceForPlayer(const int playerNumber, ChessPiece piece);
@@ -73,7 +75,6 @@ private:
     std::vector<GameState::Move> generateMoves(std::string state, char color, bool filter);
 
     //FEN Stuff
-    void FENtoBoard(const std::string& fenString);
     std::vector<std::string> splitString(const std::string &str, char delimiter);
     ChessPiece convertCharToPiece(char c);
 

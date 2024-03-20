@@ -7,7 +7,10 @@ namespace ClassGame {
         // our global variables
         //
         Chess *game = nullptr;
-        int gameWinner = -1;
+        int gameWinner = -1; 
+        bool gameOver = false;
+        bool selectedColor = false;
+        int AIPlayer = 1;
 
         //
         // game starting point
@@ -26,6 +29,22 @@ namespace ClassGame {
         //
         void RenderGame() 
         {
+#if not defined(UCI_INTERFACE)
+
+            if (!selectedColor)
+            {
+                AIPlayer = 1;
+                selectedColor = true;
+                game = new Chess();
+                game->_gameOptions.AIPlayer = AIPlayer;
+                game->setUpBoard();
+            }
+            if (game->gameHasAI() && game->getCurrentPlayer()->playerNumber() == game->getAIPlayer())
+            {
+                game->updateAI();
+            }
+            game->drawFrame();
+#else
                 ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
                 ImGui::Begin("Settings");
@@ -67,6 +86,7 @@ namespace ClassGame {
                 ImGui::Begin("GameWindow");
                 game->drawFrame();
                 ImGui::End();
+#endif
         }
 
         //

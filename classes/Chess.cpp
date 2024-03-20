@@ -1,6 +1,11 @@
 #include "Chess.h"
 #include "Evaluate.h"
+#include "UCI.h"
 #include <map>
+
+#if defined(UCI_INTERFACE)
+static UCIInterface uciInterface;
+#endif
 
 std::string Chess::pieceNotation(std::string state, int row, int column) const
 {
@@ -81,6 +86,9 @@ void Chess::setUpBoard()
     }
 
     startGame();
+#if defined(UCI_INTERFACE)
+    uciInterface.Run(this);
+#endif
 }
 
 std::vector<std::string> Chess::splitString(const std::string& str, char delimiter) {
@@ -833,7 +841,16 @@ void Chess::updateAI(){
 			bestMove = move;
 		}
     }
-
+#if defined(UCI_INTERFACE)
+    std::string bestUCIMove = indexToNotation(notationToIndex(bestMove.from)/8, notationToIndex(bestMove.from)%8);
+    bestUCIMove += std::string(indexToNotation(notationToIndex(bestMove.from)/8, notationToIndex(bestMove.from)%8));
+//    if (bestMove.flags & MoveFlags::IsPromotion) {
+//        bestUCIMove += "q";
+//    }
+    uciInterface.SendMove(bestUCIMove);
+#else
+    std::cout << "searched X nodes" << std::endl;
+#endif
     if (bestMoveScore != -9999999) {
         std::cout << "Best move: " << bestMove.from << " " << bestMove.to << std::endl;
         int srcSquare = 63 - notationToIndex(dontworryaboutit(bestMove.from));
@@ -981,4 +998,26 @@ void Chess::filterOutIllegalMoves(std::string state, std::vector<GameState::Move
             ++it;
         }
     }
+}
+
+void Chess::UCIMove(const std::string& move) {
+#if defined(UCI_INTERFACE)
+    int fromCol = move[0] - 'a';
+    int fromRow = move[1] - '1';
+    int toCol = move[2] - 'a';
+    int toRow = move[3] - '1';
+    BitHolder& src = getHolderAt(fromCol, fromRow);
+    BitHolder& dst = getHolderAt(toCol, toRow);
+    Bit* bit = src.bit();
+    if (bit) {
+        if (dst.bit()) {
+            pieceTaken(dst.bit());
+        }
+        dst.dropBitAtPoint(bit, ImVec2(0, 0));
+        src.setBit(nullptr);
+        // this also calls endTurn
+        bitMovedFromTo(*bit, src, dst);
+        uciInterface.UCILog("Chess::UCIMove: " + move);
+    }
+#endif
 }
