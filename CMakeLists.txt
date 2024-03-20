@@ -43,7 +43,6 @@ add_executable(chess Application.cpp
                           classes/TicTacToe.cpp
                           classes/Chess.cpp
                           classes/ChessSquare.cpp
-                          classes/UCI.cpp
                           ${MAIN_FILE}
                           ${IMPL_FILE}
                 )
